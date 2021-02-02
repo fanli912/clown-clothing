@@ -5,7 +5,7 @@ import ShopPage from './pages/shop/shop.component'
 import Header from './components/header/header.component.jsx'
 import SignInAndSignUpPage from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component'
 import {Switch, Route} from 'react-router-dom';
-import {auth} from './firebase/firebase.util'
+import {auth, createUserProfileDocument} from './firebase/firebase.util'
 import React from 'react';
 
 
@@ -21,10 +21,27 @@ class App extends React.Component{
 
   unsubscribeFromAuth = null;
 
+  //need to close subscrption when we unmount to avoid memory leak
   componentDidMount() {
-    this.unsubsribeFromAuth = auth.onAuthStateChanged(user => {
-      this.setState({currentUser : user});
-      console.log(user)
+    //this is an open subscription
+    this.unsubsribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+      if(userAuth) {
+        const userRef = await createUserProfileDocument(userAuth);
+
+        userRef.onSnapshot(snapShot => {
+          this.setState({
+            currentUser: {
+              id:snapShot.id,
+              ...snapShot.data()
+            }
+          },() => {
+            console.log(this.state)
+          });
+        })
+      }
+
+      this.setState({currentUser : userAuth});
+      //console.log(user)
     })
   }
 
