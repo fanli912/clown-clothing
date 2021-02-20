@@ -1,4 +1,4 @@
-//combine all states together
+//an object that combine all states together
 import {combineReducers} from 'redux';
 
 import userReducer from './user/user.reducer'
